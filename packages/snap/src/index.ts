@@ -1,3 +1,4 @@
+import { JsonBIP44CoinTypeNode, deriveBIP44AddressKey } from '@metamask/key-tree';
 import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text } from '@metamask/snaps-sdk';
 
@@ -16,6 +17,24 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   request,
 }) => {
   switch (request.method) {
+    case 'mina_getPublicKey':
+      const bip44Node = (await snap.request({
+        method:'snap_getBip44Entropy',
+        params: {
+          coinType: 12586,
+        }
+      })) as JsonBIP44CoinTypeNode;
+      console.log('snap_getBip44Entropy result:', bip44Node);
+      const extendedPrivateKey = deriveBIP44AddressKey(bip44Node, {
+        account: 0,
+        address_index: 0,
+        change: 0,
+      });
+      console.log('extendedPrivateKey:', extendedPrivateKey);
+      // const extendedPrivateKeyShort = extendedPrivateKey.slice(0, 32);
+      // extendedPrivateKeyShort[0] &= 0x3f;
+
+      return bip44Node;
     case 'hello':
       return snap.request({
         method: 'snap_dialog',

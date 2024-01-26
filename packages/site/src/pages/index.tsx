@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import styled from 'styled-components';
 
 import {
@@ -7,6 +7,7 @@ import {
   ReconnectButton,
   SendHelloButton,
   Card,
+  ShowPublicKeyButton,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
@@ -16,6 +17,7 @@ import {
   isLocalSnap,
   sendHello,
   shouldDisplayReconnectButton,
+  showPublicKey,
 } from '../utils';
 
 const Container = styled.div`
@@ -104,6 +106,7 @@ const ErrorMessage = styled.div`
 
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
+  const [publicKey, setPublicKey] = useState<string>('');
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? state.isFlask
@@ -127,6 +130,19 @@ const Index = () => {
   const handleSendHelloClick = async () => {
     try {
       await sendHello();
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
+    }
+  };
+
+  const handleShowPublicKeyButtonClick = async () => {
+    try {
+      const result = await showPublicKey();
+    
+      if ((result as { publicKey: string }).publicKey) {
+        setPublicKey((result as { publicKey: string }).publicKey);
+      }
     } catch (error) {
       console.error(error);
       dispatch({ type: MetamaskActions.SetError, payload: error });
@@ -190,6 +206,25 @@ const Index = () => {
             disabled={!state.installedSnap}
           />
         )}
+        <Card 
+          content={{
+            title: 'Show Mina PublicKey',
+            description:
+              `Display a Mina publickey. ${publicKey}`,
+            button: (
+                <ShowPublicKeyButton
+                  onClick={handleShowPublicKeyButtonClick}
+                  disabled={!state.installedSnap}
+                />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
         <Card
           content={{
             title: 'Send Hello message',

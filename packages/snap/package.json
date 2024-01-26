@@ -27,8 +27,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "@metamask/key-tree": "^9.0.0",
     "@metamask/snaps-sdk": "^1.2.0",
-    "buffer": "^6.0.3"
+    "@scure/base": "^1.1.5",
+    "buffer": "^6.0.3",
+    "mina-signer": "^2.1.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
