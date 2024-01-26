@@ -1,6 +1,9 @@
-import { JsonBIP44CoinTypeNode, deriveBIP44AddressKey } from '@metamask/key-tree';
+import { SLIP10Node } from '@metamask/key-tree';
 import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text } from '@metamask/snaps-sdk';
+import { reverse } from './utils';
+import { base64 } from '@scure/base';
+import Client from 'mina-signer';
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -18,23 +21,29 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 }) => {
   switch (request.method) {
     case 'mina_getPublicKey':
-      const bip44Node = (await snap.request({
-        method:'snap_getBip44Entropy',
+      const bip32Node: any = await snap.request({
+        method: 'snap_getBip32Entropy',
         params: {
-          coinType: 12586,
-        }
-      })) as JsonBIP44CoinTypeNode;
-      console.log('snap_getBip44Entropy result:', bip44Node);
-      const extendedPrivateKey = deriveBIP44AddressKey(bip44Node, {
-        account: 0,
-        address_index: 0,
-        change: 0,
+          path: ['m', "44'", "12586'"],
+          curve: 'secp256k1',
+        },
       });
-      console.log('extendedPrivateKey:', extendedPrivateKey);
-      // const extendedPrivateKeyShort = extendedPrivateKey.slice(0, 32);
-      // extendedPrivateKeyShort[0] &= 0x3f;
+      const minaSlip10Node = await SLIP10Node.fromJSON(bip32Node);
+      const accountKey0 = await minaSlip10Node.derive([`bip32:0'`]);
+      if (accountKey0.privateKeyBytes) {
+        // eslint-disable-next-line no-bitwise
+        accountKey0.privateKeyBytes[0] &= 0x3f;
+        console.log(accountKey0.privateKeyBytes);
+      }
+      const childPrivateKey = reverse(accountKey0.privateKeyBytes);
+      const privateKeyHex = `5a01${childPrivateKey.toString('hex')}`;
+      const privateKey = base64.encode(Buffer.from(privateKeyHex, 'hex'));
+      console.log('privateKey', privateKey);
+      const client = new Client({ network: 'testnet' });
+      const publicKey = client.derivePublicKey(privateKey);
+      console.log('publicKey', publicKey);
 
-      return bip44Node;
+      return bip32Node;
     case 'hello':
       return snap.request({
         method: 'snap_dialog',
