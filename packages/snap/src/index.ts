@@ -1,6 +1,10 @@
-import { JsonBIP44CoinTypeNode, deriveBIP44AddressKey } from '@metamask/key-tree';
+/* eslint-disable no-bitwise */
+/* eslint-disable no-case-declarations */
+import { SLIP10Node } from '@metamask/key-tree';
 import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text } from '@metamask/snaps-sdk';
+import bs58check from 'bs58check';
+import Client from 'mina-signer';
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -16,25 +20,39 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   origin,
   request,
 }) => {
+  const client = new Client({ network: 'mainnet' });
   switch (request.method) {
     case 'mina_getPublicKey':
-      const bip44Node = (await snap.request({
-        method:'snap_getBip44Entropy',
+      const bip32Node: any = await snap.request({
+        method: 'snap_getBip32Entropy',
         params: {
-          coinType: 12586,
-        }
-      })) as JsonBIP44CoinTypeNode;
-      console.log('snap_getBip44Entropy result:', bip44Node);
-      const extendedPrivateKey = deriveBIP44AddressKey(bip44Node, {
-        account: 0,
-        address_index: 0,
-        change: 0,
+          path: ['m', "44'", `12586'`],
+          curve: 'secp256k1',
+        },
       });
-      console.log('extendedPrivateKey:', extendedPrivateKey);
-      // const extendedPrivateKeyShort = extendedPrivateKey.slice(0, 32);
-      // extendedPrivateKeyShort[0] &= 0x3f;
+      console.log('snap_getBip32Entropy result:', bip32Node);
+      const minaSlip10Node = await SLIP10Node.fromJSON(bip32Node);
+      const accountIndex = 0;
+      const accountKey0 = await minaSlip10Node.derive([
+        `bip32:${accountIndex}'`,
+      ]);
+      if (!accountKey0.privateKeyBytes) {
+        // TODO: we should return error here
+        return;
+      }
+      accountKey0.privateKeyBytes[0] &= 0x3f;
+      const reversed = Buffer.alloc(accountKey0.privateKeyBytes?.length);
+      for (let i = accountKey0.privateKeyBytes.length; i > 0; i--) {
+        reversed[accountKey0.privateKeyBytes.length - i] =
+          accountKey0.privateKeyBytes[i - 1];
+      }
 
-      return bip44Node;
+      const childPrivateKey = reversed;
+      const privateKeyHex = `5a01${childPrivateKey.toString('hex')}`;
+      const privateKey = bs58check.encode(Buffer.from(privateKeyHex, 'hex'));
+      const publicKey = client.derivePublicKey(privateKey);
+
+      return { publicKey };
     case 'hello':
       return snap.request({
         method: 'snap_dialog',
