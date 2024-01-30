@@ -8,6 +8,7 @@ import {
   SendHelloButton,
   Card,
   ShowPublicKeyButton,
+  ShowGenerateNullifierButton,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
@@ -18,6 +19,7 @@ import {
   sendHello,
   shouldDisplayReconnectButton,
   showPublicKey,
+  createNullifier,
 } from '../utils';
 
 const Container = styled.div`
@@ -107,6 +109,7 @@ const ErrorMessage = styled.div`
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [publicKey, setPublicKey] = useState<string>('');
+  const [nullifier, setNullifier] = useState({x: String, y: String, s: String });
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? state.isFlask
@@ -142,6 +145,20 @@ const Index = () => {
     
       if ((result as { publicKey: string }).publicKey) {
         setPublicKey((result as { publicKey: string }).publicKey);
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
+    }
+  };
+
+  const handleCreateNullifierClick = async () => {
+    try {
+      const result = await createNullifier();
+      if (result) {
+        const convertNullifier = (result as { nullifier: { x: string, y: string, s: string } }).nullifier;
+        console.log(convertNullifier);
+        setNullifier(convertNullifier);
       }
     } catch (error) {
       console.error(error);
@@ -216,6 +233,25 @@ const Index = () => {
                   onClick={handleShowPublicKeyButtonClick}
                   disabled={!state.installedSnap}
                 />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Generate Nullifier',
+            description:
+              `Generate Nullifier from selected Account ${JSON.stringify(nullifier)}`,
+            button: (
+              <ShowGenerateNullifierButton
+                onClick={handleCreateNullifierClick}
+                disabled={!state.installedSnap}
+              />
             ),
           }}
           disabled={!state.installedSnap}

@@ -71,4 +71,11 @@ export const showPublicKey = async () => {
   });
 }
 
+export const createNullifier = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: { snapId: defaultSnapOrigin, request: { method: 'mina_createNullifier' } },
+  });
+}
+
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');

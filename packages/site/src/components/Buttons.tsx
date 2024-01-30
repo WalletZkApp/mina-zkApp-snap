@@ -103,6 +103,10 @@ export const ShowPublicKeyButton = (props: ComponentProps<typeof Button>) => {
   return <Button {...props}>Show public key</Button>;
 }
 
+export const ShowGenerateNullifierButton = (props: ComponentProps<typeof Button>) => {
+  return <Button {...props}>Generate nullifier</Button>;
+}
+
 export const HeaderButtons = ({
   state,
   onConnectClick,
