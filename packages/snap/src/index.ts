@@ -24,10 +24,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
     case 'mina_getPublicKey':
       const keypair = await getKeyPair();
       console.log('mina_getPublicKey', keypair.publicKey);
-      return { keypair.publicKey };
-    // case 'mina_getPrivateKey':
-    //     const { privateKey } = await getKeyPair();
-    //   return privateKey;
+      const publicKey = keypair.publicKey;
+      return { publicKey };
     case 'mina_createNullifier':
     
       const keyPair = await getKeyPair();
@@ -39,8 +37,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         message,
         keyPair.privateKey
       );
-      console.log('jsonNullifier1', jsonNullifier1);
-      return jsonNullifier1; 
+      const publicNullifier = jsonNullifier1.public;
+      console.log('publicNullifier', publicNullifier);
+      return publicNullifier; 
     case 'hello':
       return snap.request({
         method: 'snap_dialog',

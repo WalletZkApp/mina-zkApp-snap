@@ -109,6 +109,7 @@ const ErrorMessage = styled.div`
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [publicKey, setPublicKey] = useState<string>('');
+  const [nullifier, setNullifier] = useState({x: String, y: String, s: String });
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? state.isFlask
@@ -153,7 +154,12 @@ const Index = () => {
 
   const handleCreateNullifierClick = async () => {
     try {
-      await createNullifier();
+      const result = await createNullifier();
+      if (result) {
+        const convertNullifier = (result as { nullifier: { x: string, y: string, s: string } }).nullifier;
+        console.log(convertNullifier);
+        setNullifier(convertNullifier);
+      }
     } catch (error) {
       console.error(error);
       dispatch({ type: MetamaskActions.SetError, payload: error });
@@ -240,7 +246,7 @@ const Index = () => {
           content={{
             title: 'Generate Nullifier',
             description:
-              'Generate Nullifier from selected Account.',
+              `Generate Nullifier from selected Account ${JSON.stringify(nullifier)}`,
             button: (
               <ShowGenerateNullifierButton
                 onClick={handleCreateNullifierClick}
