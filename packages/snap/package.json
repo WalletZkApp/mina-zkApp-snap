@@ -32,7 +32,8 @@
     "@scure/base": "^1.1.5",
     "bs58check": "^3.0.1",
     "buffer": "^6.0.3",
-    "mina-signer": "^2.1.1"
+    "mina-signer": "^2.1.1",
+    "o1js": "^0.15.4"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",

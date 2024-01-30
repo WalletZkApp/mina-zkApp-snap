@@ -20,39 +20,27 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   origin,
   request,
 }) => {
-  const client = new Client({ network: 'mainnet' });
   switch (request.method) {
     case 'mina_getPublicKey':
-      const bip32Node: any = await snap.request({
-        method: 'snap_getBip32Entropy',
-        params: {
-          path: ['m', "44'", `12586'`],
-          curve: 'secp256k1',
-        },
-      });
-      console.log('snap_getBip32Entropy result:', bip32Node);
-      const minaSlip10Node = await SLIP10Node.fromJSON(bip32Node);
-      const accountIndex = 0;
-      const accountKey0 = await minaSlip10Node.derive([
-        `bip32:${accountIndex}'`,
-      ]);
-      if (!accountKey0.privateKeyBytes) {
-        // TODO: we should return error here
-        return;
-      }
-      accountKey0.privateKeyBytes[0] &= 0x3f;
-      const reversed = Buffer.alloc(accountKey0.privateKeyBytes?.length);
-      for (let i = accountKey0.privateKeyBytes.length; i > 0; i--) {
-        reversed[accountKey0.privateKeyBytes.length - i] =
-          accountKey0.privateKeyBytes[i - 1];
-      }
+      const keypair = await getKeyPair();
+      console.log('mina_getPublicKey', keypair.publicKey);
+      return { keypair.publicKey };
+    // case 'mina_getPrivateKey':
+    //     const { privateKey } = await getKeyPair();
+    //   return privateKey;
+    case 'mina_createNullifier':
+    
+      const keyPair = await getKeyPair();
+      console.log('mina_createNullifier', keyPair.privateKey);
+      const client = new Client({ network: 'mainnet' });
+      const message = Array.from(new BigInt64Array([BigInt(1)]));
 
-      const childPrivateKey = reversed;
-      const privateKeyHex = `5a01${childPrivateKey.toString('hex')}`;
-      const privateKey = bs58check.encode(Buffer.from(privateKeyHex, 'hex'));
-      const publicKey = client.derivePublicKey(privateKey);
-
-      return { publicKey };
+      let jsonNullifier1 = client.createNullifier(
+        message,
+        keyPair.privateKey
+      );
+      console.log('jsonNullifier1', jsonNullifier1);
+      return jsonNullifier1; 
     case 'hello':
       return snap.request({
         method: 'snap_dialog',
@@ -71,3 +59,38 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       throw new Error('Method not found.');
   }
 };
+
+async function getKeyPair(): Promise<{publicKey: string, privateKey: string}> {
+  const client = new Client({ network: 'mainnet' });
+  const bip32Node: any = await snap.request({
+    method: 'snap_getBip32Entropy',
+    params: {
+      path: ['m', "44'", `12586'`],
+      curve: 'secp256k1',
+    },
+  });
+  console.log('snap_getBip32Entropy result:', bip32Node);
+  const minaSlip10Node = await SLIP10Node.fromJSON(bip32Node);
+  const accountIndex = 0;
+  const accountKey0 = await minaSlip10Node.derive([
+    `bip32:${accountIndex}'`,
+  ]);
+  if (!accountKey0.privateKeyBytes) {
+    // TODO: we should return error here
+    return {};
+  }
+  accountKey0.privateKeyBytes[0] &= 0x3f;
+  const reversed = Buffer.alloc(accountKey0.privateKeyBytes?.length);
+  for (let i = accountKey0.privateKeyBytes.length; i > 0; i--) {
+    reversed[accountKey0.privateKeyBytes.length - i] =
+      accountKey0.privateKeyBytes[i - 1];
+  }
+
+  const childPrivateKey = reversed;
+  const privateKeyHex = `5a01${childPrivateKey.toString('hex')}`;
+  const privateKey = bs58check.encode(Buffer.from(privateKeyHex, 'hex'));
+  const publicKey = client.derivePublicKey(privateKey);
+  console.log('publicKey', publicKey);
+  console.log('privateKey', privateKey);
+  return { publicKey, privateKey };
+}

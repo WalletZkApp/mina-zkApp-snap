@@ -8,6 +8,7 @@ import {
   SendHelloButton,
   Card,
   ShowPublicKeyButton,
+  ShowGenerateNullifierButton,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
@@ -18,6 +19,7 @@ import {
   sendHello,
   shouldDisplayReconnectButton,
   showPublicKey,
+  createNullifier,
 } from '../utils';
 
 const Container = styled.div`
@@ -149,6 +151,15 @@ const Index = () => {
     }
   };
 
+  const handleCreateNullifierClick = async () => {
+    try {
+      await createNullifier();
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
+    }
+  };
+
   return (
     <Container>
       <Heading>
@@ -216,6 +227,25 @@ const Index = () => {
                   onClick={handleShowPublicKeyButtonClick}
                   disabled={!state.installedSnap}
                 />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Generate Nullifier',
+            description:
+              'Generate Nullifier from selected Account.',
+            button: (
+              <ShowGenerateNullifierButton
+                onClick={handleCreateNullifierClick}
+                disabled={!state.installedSnap}
+              />
             ),
           }}
           disabled={!state.installedSnap}
