@@ -9,6 +9,11 @@ const config: SnapConfig = {
   },
   polyfills: {
     buffer: true,
+    crypto: true,
+    events: true,
+    stream: true,
+    string_decoder: true,
+    util: true,
   },
 };
 

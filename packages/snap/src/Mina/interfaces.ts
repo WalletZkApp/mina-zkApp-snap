@@ -17,19 +17,10 @@ export type ImportedAccountOptions = {
 
 export type NetworkConfig = {
   name: string;
-  gqlUrl: string;
-  gqlTxUrl: string;
-  explorerUrl: string;
   token: {
-    name: string;
     coinType: number;
-    symbol: string;
-    decimals: number;
   };
   currentAccIndex: number;
-  generatedAccounts: NormalAccountOptions;
-  selectedImportedAccount: number | null;
-  importedAccounts: ImportedAccountOptions;
 };
 
 export type SnapState = {
