@@ -1,5 +1,3 @@
-import type { ENetworkName } from '../constants/configConstants';
-
 export type NormalAccountOptions = {
   [index: number]: {
     name: string;
@@ -21,13 +19,4 @@ export type NetworkConfig = {
     coinType: number;
   };
   currentAccIndex: number;
-};
-
-export type SnapState = {
-  mina: SnapConfig;
-};
-
-export type SnapConfig = {
-  currentNetwork: ENetworkName;
-  networks: { [key: string]: NetworkConfig };
 };

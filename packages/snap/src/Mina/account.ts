@@ -1,9 +1,8 @@
 import { SLIP10Node } from '@metamask/key-tree';
 import bs58check from 'bs58check';
-import { ESnapMethod } from 'src/constants/snapMethodConstants';
-import { reverseBytes } from 'src/utils';
-import { getMinaClient } from 'src/utils/minaClientUtils';
 
+import { ESnapMethod } from '../constants/snapMethodConstants';
+import { getMinaClient, reverseBytes } from '../utils';
 import type { NetworkConfig } from './interfaces';
 
 export const generateKeyPair = async (
