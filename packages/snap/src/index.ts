@@ -6,6 +6,8 @@ import { panel, text } from '@metamask/snaps-sdk';
 import bs58check from 'bs58check';
 import Client from 'mina-signer';
 
+import { Add } from './smart-contracts/Add.js';
+
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
  *
@@ -22,7 +24,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 }) => {
   const client = new Client({ network: 'mainnet' });
   switch (request.method) {
-    case 'mina_getPublicKey':
+    case 'mina_getPublicKey': {
       const bip32Node: any = await snap.request({
         method: 'snap_getBip32Entropy',
         params: {
@@ -38,7 +40,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       ]);
       if (!accountKey0.privateKeyBytes) {
         // TODO: we should return error here
-        return;
+        throw new Error('Can not derive Mina keys');
       }
       accountKey0.privateKeyBytes[0] &= 0x3f;
       const reversed = Buffer.alloc(accountKey0.privateKeyBytes?.length);
@@ -53,7 +55,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       const publicKey = client.derivePublicKey(privateKey);
 
       return { publicKey };
-    case 'hello':
+    }
+    case 'hello': {
+      console.log('compiling...');
+      await Add.compile();
+      console.log('compile finished!');
       return snap.request({
         method: 'snap_dialog',
         params: {
@@ -67,6 +73,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
           ]),
         },
       });
+    }
     default:
       throw new Error('Method not found.');
   }
