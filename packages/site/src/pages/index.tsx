@@ -9,6 +9,8 @@ import {
   Card,
   ShowPublicKeyButton,
   ShowGenerateNullifierButton,
+  GenerateKeyPair,
+  FaucetMinaTokens,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
@@ -20,6 +22,8 @@ import {
   shouldDisplayReconnectButton,
   showPublicKey,
   createNullifier,
+  generateMinaKeyPair,
+  faucetMinaTokens,
 } from '../utils';
 
 const Container = styled.div`
@@ -109,7 +113,9 @@ const ErrorMessage = styled.div`
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
   const [publicKey, setPublicKey] = useState<string>('');
-  const [nullifier, setNullifier] = useState({x: String, y: String, s: String });
+  const [nullifier, setNullifier] = useState({ x: String, y: String, s: String });
+  const [generatedMinaPublicKey, setGeneratedPublicKey] = useState<string>('');
+  const [faucetResult, setfaucetResult] = useState<string>('');
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? state.isFlask
@@ -142,7 +148,7 @@ const Index = () => {
   const handleShowPublicKeyButtonClick = async () => {
     try {
       const result = await showPublicKey();
-    
+
       if ((result as { publicKey: string }).publicKey) {
         setPublicKey((result as { publicKey: string }).publicKey);
       }
@@ -166,6 +172,41 @@ const Index = () => {
     }
   };
 
+  const handleGenerateKeyPairClick = async () => {
+    const index = 1; // TODO: hard-code this for now. We will change this later
+    try {
+      const result = (await generateMinaKeyPair(index)) as {
+        publicKey: string;
+        privateKey: string;
+      };
+      if (result) {
+        console.log('generated key pair:', result);
+        setGeneratedPublicKey(result.publicKey);
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
+    }
+  };
+
+  const handleFaucetClick = async () => {
+    try {
+      const result = (await faucetMinaTokens(generatedMinaPublicKey)) as {
+        txHash: string;
+        error: string;
+      };
+      console.log('faucet MINA result:', result);
+      if (result.txHash) {
+        setfaucetResult(result.txHash);
+      } else {
+        setfaucetResult(result.error);
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
+    }
+  };
   return (
     <Container>
       <Heading>
@@ -223,16 +264,15 @@ const Index = () => {
             disabled={!state.installedSnap}
           />
         )}
-        <Card 
+        <Card
           content={{
             title: 'Show Mina PublicKey',
-            description:
-              `Display a Mina publickey. ${publicKey}`,
+            description: `Display a Mina publickey. ${publicKey}`,
             button: (
-                <ShowPublicKeyButton
-                  onClick={handleShowPublicKeyButtonClick}
-                  disabled={!state.installedSnap}
-                />
+              <ShowPublicKeyButton
+                onClick={handleShowPublicKeyButtonClick}
+                disabled={!state.installedSnap}
+              />
             ),
           }}
           disabled={!state.installedSnap}
@@ -269,6 +309,44 @@ const Index = () => {
             button: (
               <SendHelloButton
                 onClick={handleSendHelloClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Generate key pair',
+            description: `Generated public MINA keypair from snap.
+            \n${generatedMinaPublicKey}`,
+            button: (
+              <GenerateKeyPair
+                onClick={handleGenerateKeyPairClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Faucet',
+            description: `Receive MINA token for new account.
+            \n ${faucetResult}`,
+            button: (
+              <FaucetMinaTokens
+                onClick={handleFaucetClick}
                 disabled={!state.installedSnap}
               />
             ),

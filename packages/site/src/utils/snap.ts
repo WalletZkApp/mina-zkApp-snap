@@ -67,15 +67,41 @@ export const sendHello = async () => {
 export const showPublicKey = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: { snapId: defaultSnapOrigin, request: { method: 'mina_getPublicKey' } },
+    params: {
+      snapId: defaultSnapOrigin,
+      request: { method: 'mina_getPublicKey' },
+    },
   });
-}
+};
 
 export const createNullifier = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: { snapId: defaultSnapOrigin, request: { method: 'mina_createNullifier' } },
+    params: {
+      snapId: defaultSnapOrigin,
+      request: { method: 'mina_createNullifier' },
+    },
   });
-}
+};
+
+export const generateMinaKeyPair = async (index: number) => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: {
+      snapId: defaultSnapOrigin,
+      request: { method: 'mina_generateKeypair', params: { index } },
+    },
+  });
+};
+
+export const faucetMinaTokens = async (address: string) => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: {
+      snapId: defaultSnapOrigin,
+      request: { method: 'mina_faucetAccount', params: { address } },
+    },
+  });
+};
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');

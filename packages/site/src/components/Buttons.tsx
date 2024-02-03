@@ -107,6 +107,14 @@ export const ShowGenerateNullifierButton = (props: ComponentProps<typeof Button>
   return <Button {...props}>Generate nullifier</Button>;
 }
 
+export const GenerateKeyPair = (props: ComponentProps<typeof Button>) => {
+  return <Button {...props}>Generate MINA keypair</Button>;
+};
+
+export const FaucetMinaTokens = (props: ComponentProps<typeof Button>) => {
+  return <Button {...props}>Faucet MINA tokens</Button>;
+};
+
 export const HeaderButtons = ({
   state,
   onConnectClick,
