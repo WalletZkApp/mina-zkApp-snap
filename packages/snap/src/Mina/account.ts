@@ -1,7 +1,7 @@
 import { SLIP10Node } from '@metamask/key-tree';
 import bs58check from 'bs58check';
 
-import { ESnapMethod } from '../constants/snapMethodConstants';
+import { ESnapMethod } from '../constants/snap-method';
 import { getMinaClient, reverseBytes } from '../utils';
 import type { NetworkConfig } from './interfaces';
 

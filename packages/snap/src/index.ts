@@ -4,6 +4,7 @@ import type { OnRpcRequestHandler } from '@metamask/snaps-sdk';
 import { panel, text } from '@metamask/snaps-sdk';
 import Client from 'mina-signer';
 
+import { EMinaMethod } from './constants';
 import { generateKeyPair } from './Mina/account';
 import type { NetworkConfig } from './Mina/interfaces';
 import { Networks } from './Mina/types/Networks';
@@ -32,13 +33,13 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   request,
 }) => {
   switch (request.method) {
-    case 'mina_getPublicKey': {
+    case EMinaMethod.GET_PUBLIC_KEY: {
       const keyPair = await generateKeyPair(networkConfig);
       console.log('mina_getPublicKey', keyPair.publicKey);
       const { publicKey } = keyPair;
       return { publicKey };
     }
-    case 'mina_createNullifier': {
+    case EMinaMethod.CREATE_NULLIFIER: {
       const keyPair = await generateKeyPair(networkConfig);
       console.log('mina_createNullifier', keyPair.privateKey);
       const client = new Client({ network: 'mainnet' });
@@ -52,12 +53,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       console.log('publicNullifier', publicNullifier);
       return publicNullifier;
     }
-    case 'mina_generateKeypair': {
+    case EMinaMethod.GENERATE_KEYPAIR: {
       const { index } = request.params as { index: number };
       const keyPair = await generateKeyPair(networkConfig, index);
-      return keyPair;
+      return keyPair; // TODO: We can't return the private key here
     }
-    case 'mina_faucetAccount': {
+    case EMinaMethod.ACCOUNT_FAUCET: {
       const { address } = request.params as { address: string };
       const faucetUrl =
         'https://cors-anywhere.herokuapp.com/https://faucet.minaprotocol.com/api/v1/faucet';
