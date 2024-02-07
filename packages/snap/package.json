@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@metamask/key-tree": "^9.0.0",
-    "@metamask/snaps-sdk": "^1.2.0",
+    "@metamask/snaps-sdk": "^2.0.0",
     "@scure/base": "^1.1.5",
     "bs58check": "^3.0.1",
     "buffer": "^6.0.3",
